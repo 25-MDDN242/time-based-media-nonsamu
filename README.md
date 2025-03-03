@@ -5,3 +5,8 @@
 ### THIS IS YOUR README
 
 Update this file as you go along to record your progress.
+https://www.astronomy.com/uploads/2024/05/Prague-Astronomical-Clock.jpeg
+https://img.freepik.com/premium-photo/gothic-wallpaper-with-bitcoin-cathedral-design-with-pointed-illustration-crypto-trading-background_1020495-317103.jpg
+https://m.media-amazon.com/images/I/71nulk4LYHL._AC_SX679_.jpg
+https://ferrebeekeeper.wordpress.com/wp-content/uploads/2020/12/10000ruckersharpsichordportraitblg.jpg?w=514
+https://hebberts.com/wp-content/uploads/2024/08/Jonathan-Hill-6.jpg
