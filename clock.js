@@ -88,12 +88,12 @@ function drawMetronome(x, y, obj) {
   push();
   translate(x, y);
 
-  let goldLight = color(255, 215, 0);  // Bright gold highlight
-  let goldMid = color(218, 165, 32);   // Standard gold
-  let goldDark = color(184, 134, 11);  // Shadowed gold
-  let goldDarker = color(150, 109, 0)  // Gold Bevel
+  let goldLight = color(255, 215, 0);  //Bright gold highlight
+  let goldMid = color(218, 165, 32);   //Standard gold
+  let goldDark = color(184, 134, 11);  //Shadowed gold
+  let goldDarker = color(150, 109, 0)  //Gold Bevel
 
-  // Metronome Body (Outer and Inner)
+  //Metronome Body (Outer and Inner)
   fill(150, 75, 0); stroke(0); strokeWeight(4);
   quad(-70, 100, 70, 100, 20, -100, -20, -100);
 
@@ -279,7 +279,6 @@ function drawWindow() {
   stroke(80, 50, 20);
   rect(frameX, frameY-frameHeight / 3.4 , frameX * 0.44, frameY * 0.425)
 
-  //Curtain Rod
   
 }
 
