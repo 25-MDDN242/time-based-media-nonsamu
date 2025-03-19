@@ -91,7 +91,7 @@ function drawMetronome(x, y, obj) {
   let goldLight = color(255, 215, 0);  // Bright gold highlight
   let goldMid = color(218, 165, 32);   // Standard gold
   let goldDark = color(184, 134, 11);  // Shadowed gold
-  let goldDarker = color(150, 109, 0)
+  let goldDarker = color(150, 109, 0)  // Gold Bevel
 
   // Metronome Body (Outer and Inner)
   fill(150, 75, 0); stroke(0); strokeWeight(4);
@@ -259,15 +259,28 @@ function drawWindow() {
   rect(frameX + frameWidth / 2 + 75, 400, width - (frameX + frameWidth / 2), height/4)
 
   //Window Frame
-  stroke(100, 50, 20);
-  strokeWeight(10);
+  stroke(100,50,20);
+  strokeWeight(30);
+  noFill();
+  rect(frameX, frameY, frameWidth*0.97, frameHeight*0.96);
+
+  stroke(120, 70, 30);
+  strokeWeight(20);
   noFill();
   rect(frameX, frameY, frameWidth, frameHeight);
 
   //Window Panes
-  strokeWeight(5);
-  line(frameX - frameWidth / 2, frameY, frameX + frameWidth / 2, frameY); // Horizontal divider
-  line(frameX, frameY - frameHeight / 2, frameX, frameY + frameHeight / 2); // Vertical divider
+  stroke(100,50,20);
+  strokeWeight(15);
+  line(frameX * 0.75, frameY/1.25, frameX * 1.25, frameY/1.25); // Horizontal divider
+  line(frameX * 0.75, frameY - frameHeight / 2+20, frameX * 0.75, frameY + frameHeight / 2-20); // Vertical divider
+  line(frameX * 1.25, frameY - frameHeight / 2+20, frameX * 1.25, frameY + frameHeight / 2-20);
+
+  stroke(80, 50, 20);
+  rect(frameX, frameY-frameHeight / 3.4 , frameX * 0.44, frameY * 0.425)
+
+  //Curtain Rod
+  
 }
 
 function drawWindowsill() {
