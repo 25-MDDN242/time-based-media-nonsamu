@@ -17,23 +17,13 @@ function draw_clock(obj) {
   textAlign(CENTER, CENTER);
   text("YOUR MAIN CLOCK CODE GOES HERE", width / 2, 200);
   
-  // Sky Color based on hour
-  let skyColor = setColours(obj.hours);
+  let skyColor = setColours(obj);
   background(skyColor);
+  drawWindow()
+  drawWindowsill()
 
-  /*if (hour >= 6 && hour < 12) { // Morning
-    skyColor = color(135, 206, 235); // light blue
-  } else if (hour >= 12 && hour < 18) { // Afternoon
-    skyColor = color(70, 130, 180); // deeper blue
-  } else if (hour >= 18 && hour < 20) { // Sunset
-    skyColor = color(250, 128, 114); // orange-red
-  } else { // Night
-    skyColor = color(25, 25, 112); // dark blue
-  }*/
-
-  background(skyColor);
-  drawMetronome(width/4,height/2, obj)
-  drawTuner(width /2, height /2 , obj)
+  drawMetronome(width/3,height/4*3, obj)
+  drawTuner(width /3 *2, height /4*3 , obj)
 }
 
 function setColours(hour) {
@@ -187,4 +177,86 @@ function drawTuner(x, y, obj) {
   ellipse(0, switchY, 30, 30);
 
   pop();
+}
+
+function drawWindow() {
+  let frameWidth = width * 0.7;
+  let frameHeight = height * 0.8;
+  let frameX = width / 2;
+  let frameY = height / 2;
+
+  //Wall
+  fill(245, 222, 179);
+  noStroke();
+  rect(0, 0, width, height);
+
+  //Sky
+  fill(setColours(obj));
+  rectMode(CENTER);
+  rect(frameX, frameY, frameWidth, frameHeight);
+
+  drawGround(obj, frameX, frameY, frameWidth, frameHeight);
+
+  //Patches (This is scuffed. Pls fix)
+  fill(245, 222, 179);
+  noStroke();
+  rect(400, frameY + frameHeight / 2 + 25, width, height - (frameY + frameHeight / 2));
+  rect(75, 400, frameX - frameWidth / 2, height/4);
+  rect(frameX + frameWidth / 2 + 75, 400, width - (frameX + frameWidth / 2), height/4)
+
+  //Window Frame
+  stroke(100, 50, 20);
+  strokeWeight(10);
+  noFill();
+  rect(frameX, frameY, frameWidth, frameHeight);
+
+  //Window Panes
+  strokeWeight(5);
+  line(frameX - frameWidth / 2, frameY, frameX + frameWidth / 2, frameY); // Horizontal divider
+  line(frameX, frameY - frameHeight / 2, frameX, frameY + frameHeight / 2); // Vertical divider
+}
+
+function drawWindowsill() {
+  let sillHeight = 30;
+  let sillY = height - sillHeight;
+
+  fill(120, 70, 30); // Wood color
+  noStroke();
+  rectMode(CORNER);
+  rect(0, sillY, width, sillHeight); // Horizontal shelf
+
+  // Add shadow for realism
+  fill(80, 50, 20, 150); // Darker brown with transparency
+  rect(0, sillY + sillHeight - 5, width, 10);
+}
+
+function drawGround(obj, frameX, frameY, frameWidth, frameHeight) {
+  let hour = obj.hours;
+  let minute = obj.minutes;
+  
+  //Ground Colour transitions
+  let nightGreen = color(10, 50, 10);
+  let dayGreen = color(50, 200, 50);
+
+  let time = hour + minute / 60;
+  let groundColor;
+
+  if (time < 6) {
+    groundColor = nightGreen;
+  } else if (time < 12) {
+    let t = (time - 6) / 6;
+    groundColor = lerpColor(nightGreen, dayGreen, t);
+  } else if (time < 18) {
+    groundColor = dayGreen;
+  } else if (time < 24) {
+    let t = (time - 18) / 6;
+    groundColor = lerpColor(dayGreen, nightGreen, t);
+  } else {
+    groundColor = nightGreen;
+  }
+
+  fill(groundColor);
+  noStroke();
+  let groundY = frameY + frameHeight / 4;
+  ellipse(frameX, groundY / 0.85, frameWidth * 1.2, frameHeight * 0.3);
 }
