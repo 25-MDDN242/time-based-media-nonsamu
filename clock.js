@@ -17,8 +17,10 @@ function draw_clock(obj) {
   textAlign(CENTER, CENTER);
   text("YOUR MAIN CLOCK CODE GOES HERE", width / 2, 200);
   
+  // Sky Color based on hour
   let skyColor = setColours(obj);
   background(skyColor);
+
   drawWindow()
   drawWindowsill()
 
@@ -26,45 +28,80 @@ function draw_clock(obj) {
   drawTuner(width /3 *2, height /4*3 , obj)
 }
 
-function setColours(hour) {
-  let bgColor;
+function setColours(obj) {
+  let hour = obj.hours;
+  let minute = obj.minutes;
+  let second = obj.seconds;
+  let millis = obj.millis;
 
-  switch (true) { 
-    case (hour <= 4 || hour >= 20): 
-      bgColor = color(0); // Black (Night)
-      break;
+  // Convert full time into a smooth float (0 to 23.999...)
+  let time = hour + minute / 60 + second / 3600 + millis / 3600000;
 
-    case (hour > 5 && hour <= 6): 
-    case (hour > 18 && hour <= 19):
-      bgColor = color(232, 131, 72); // Orange (Sunrise/Sunset)
-      break;
+  // Define smooth sky colors at specific times
+  let night = color(10, 10, 40);       // Deep Dark Blue (Midnight)
+  let dawn = color(88, 52, 133);       // Purple (Dawn)
+  let sunrise = color(232, 131, 72);   // Warm Orange (Sunrise)
+  let midday = color(45, 104, 196);    // Bright Blue (Daytime)
+  let sunset = color(250, 128, 114);   // Reddish-Orange (Sunset)
+  let dusk = color(45, 45, 85);        // Deep Blue-Purple (Dusk)
 
-    case (hour > 4 && hour <= 5): 
-    case (hour > 19 && hour <= 20): 
-      bgColor = color(88, 52, 133); // Purple (Dawn/Dusk)
-      break;
+  let currentColor;
 
-    case (hour >= 7 && hour < 18): 
-      bgColor = color(45, 221, 227); // Blue (Daytime)
-      break;
-
-    default: 
-      bgColor = color(0); // Fallback (Black)
+  if (time < 2) {
+    currentColor = night; // Midnight to early morning
+  } 
+  else if (time < 4) {
+    let t = (time - 4) / 2; // Smooth transition from 4:00 → 6:00
+    currentColor = lerpColor(night, dawn, t);
+  } 
+  else if (time < 6) {
+    let t = (time - 6) / 2;
+    currentColor = lerpColor(dawn, sunrise, t);
+  } 
+  else if (time < 12) {
+    let t = (time - 8) / 4;
+    currentColor = lerpColor(sunrise, midday, t);
+  } 
+  else if (time < 16) {
+    currentColor = midday; // Midday stays bright blue
+  } 
+  else if (time < 18) {
+    let t = (time - 16) / 2;
+    currentColor = lerpColor(midday, sunset, t);
+  } 
+  else if (time < 20) {
+    let t = (time - 18) / 2;
+    currentColor = lerpColor(sunset, dusk, t);
+  } 
+  else if (time < 22) {
+    let t = (time - 20) / 2;
+    currentColor = lerpColor(dusk, night, t);
+  } 
+  else {
+    currentColor = night; // Nighttime
   }
 
-  return bgColor;
+  return currentColor;
 }
 
 function drawMetronome(x, y, obj) {
   push();
   translate(x, y);
 
+  let goldLight = color(255, 215, 0);  // Bright gold highlight
+  let goldMid = color(218, 165, 32);   // Standard gold
+  let goldDark = color(184, 134, 11);  // Shadowed gold
+  let goldDarker = color(150, 109, 0)
+
   // Metronome Body (Outer and Inner)
-  fill(150, 75, 0); stroke(0); strokeWeight(2);
+  fill(150, 75, 0); stroke(0); strokeWeight(4);
   quad(-70, 100, 70, 100, 20, -100, -20, -100);
 
   fill(10); strokeWeight(4);
   quad(-55, 90, 55, 90, 10, -90, -10, -90);
+
+  fill(90); strokeWeight(3);
+  quad(-5, 90, 5, 90, 5, -90, -5, -90);
 
   //Pendulum
   push();
@@ -72,7 +109,7 @@ function drawMetronome(x, y, obj) {
 
   //Swing motion
   let millisProgress = obj.millis / 1000;
-  let swingRange = 30;
+  let swingRange = 40;
   let angle = radians(lerp(obj.seconds % 2 ? swingRange : -swingRange, obj.seconds % 2 ? -swingRange : swingRange, millisProgress));
   rotate(angle);
 
@@ -81,7 +118,7 @@ function drawMetronome(x, y, obj) {
   line(0, 0, 0, -150);
 
   //Trapezoid Weight
-  fill(90); noStroke();
+  fill(90); stroke(0); strokeWeight(2);
   quad(-8, -70, 8, -70, 15, -90, -15, -90);
 
   pop(); // End pendulum
@@ -90,8 +127,25 @@ function drawMetronome(x, y, obj) {
   fill(90); ellipse(0, 50, 10, 10);
 
   //Metronome Base
-  fill(150, 75, 0); stroke(0); strokeWeight(2);
+  fill(150, 75, 0); stroke(4); strokeWeight(4);
   quad(-70, 100, 70, 100, 60, 45, -60, 45);
+
+  //Plate
+  let goldOffsetY = 15;
+  let goldPlateHeight = 25;
+
+  for (let i = 0; i < goldPlateHeight; i++) {
+    let inter = map(i, 0, goldPlateHeight, 0, 1);
+    let goldShade = lerpColor(goldLight, goldDark, inter);
+    stroke(goldShade);
+    line(-51 + i / 4, 99.5 - goldOffsetY - i, 51 - i / 4, 99.5 - goldOffsetY - i);
+  }
+
+  //Plate Bevel
+  stroke(goldDarker);
+  strokeWeight(2);
+  noFill();
+  quad(-50, 100 - goldOffsetY, 50, 100 - goldOffsetY, 45, 100 - goldOffsetY - goldPlateHeight, -45, 100 - goldOffsetY - goldPlateHeight);
 
   pop();
 }
@@ -119,21 +173,21 @@ function drawTuner(x, y, obj) {
   let progress = currentMillis / totalTime;
 
   //Deviation Update
-  let maxDeviation = 5 * pow(1 - progress, 3.5);
+  let maxDeviation = 5 * pow(1 - progress, 3);
 
   if (millis() - lastUpdateTime > 1000) {
     targetDeviation = random(-maxDeviation, maxDeviation);
 
-    //Ensure center isn't alone before last 5s
-    if (remainingTime > 5000 && abs(targetDeviation) < 0.1) {
-      targetDeviation = random([-0.3, -0.2, -0.1, 0.1, 0.2, 0.3]);
+    //Ensure center isn't alone before last 3s
+    if (remainingTime > 3000 && abs(targetDeviation) < 0.1) {
+      targetDeviation = random([-0.3, -0.2, 0.2, 0.3]);
     }
 
     lastUpdateTime = millis();
   }
 
   currentDeviation = lerp(currentDeviation, targetDeviation, 0.1);
-  let inTune = abs(currentDeviation) <= 0.1 && remainingTime <= 5000;
+  let inTune = abs(currentDeviation) <= 0.1 /*&& remainingTime <= 3000*/;
   
   //Screen Background (Black Display)
   let screenWidth = tunerWidth * 0.8;
