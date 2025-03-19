@@ -31,43 +31,141 @@ function draw_clock(obj) {
     skyColor = color(25, 25, 112); // dark blue
   }
 
-  // Music Stand
-  push();
-  fill(60);
-  rect(width / 2 - 75, height / 2, 150, 10); // top board
-  rect(width / 2 - 5, height / 2 + 10, 10, 150); // stand post
-  triangle(width / 2 - 30, height / 2 + 160, width / 2 + 30, height / 2 + 160, width / 2, height / 2 + 200); // base
-  pop();
+background(skyColor);
+  drawMetronome(width/4,height/2, obj)
+  drawTuner(width /2, height /2 , obj)
+}
 
-  // Page Number
-  fill(255);
-  textSize(60);
-  textAlign(CENTER, CENTER);
-  text(obj.minutes, width / 2, height / 2 + 5);
+function drawMetronome(x, y, obj) {
+  push();
+  translate(x, y);
+
+  // Metronome Body (Outer and Inner)
+  fill(150, 75, 0); stroke(0); strokeWeight(2);
+  quad(-70, 100, 70, 100, 20, -100, -20, -100);
+
+  fill(10); strokeWeight(4);
+  quad(-55, 90, 55, 90, 10, -90, -10, -90);
+
+  // --- Pendulum ---
+  push();
+  translate(0, 50); // Pivot point
+
+  // Swing motion
+  let millisProgress = obj.millis / 1000;
+  let swingRange = 30;
+  let angle = radians(lerp(obj.seconds % 2 ? swingRange : -swingRange, obj.seconds % 2 ? -swingRange : swingRange, millisProgress));
+  rotate(angle);
+
+  // Pendulum Rod
+  stroke(150); strokeWeight(6);
+  line(0, 0, 0, -150);
+
+  // Trapezoid Weight
+  fill(230); noStroke();
+  quad(-8, -70, 8, -70, 15, -90, -15, -90);
+
+  pop(); // End pendulum
+
+  // Pivot Point
+  fill(0); ellipse(0, 50, 10, 10);
 
   // Metronome Base
-  push();
-  translate(width / 4 * 3, height / 2 + 100);
-  fill(100);
-  rect(-20, 0, 40, 100); // stand
+  fill(150, 75, 0); stroke(0); strokeWeight(2);
+  quad(-70, 100, 70, 100, 60, 45, -60, 45);
 
-  // Swing Arm
-  let angle = sin(radians(obj.seconds * 6)) * 30; // swings back and forth, 6 degrees per second
-  rotate(radians(angle));
-  strokeWeight(4);
-  stroke(0);
-  line(0, 0, 0, -100); // pendulum arm
-  fill(200, 50, 50);
-  ellipse(0, -100, 20); // bob
   pop();
+}
 
-background(skyColor);
+let lastUpdateTime = 0;
+let targetDeviation = 0;
+let currentDeviation = 0;
 
-  fill(249, 140, 255);// pink
-  ellipse(width / 3, 350, 150);
-  fill(140, 255, 251) // blue
-  ellipse(width / 2, 350, 150);
-  fill(175, 133, 255); // purple
-  ellipse(width / 3 * 2, 350, 150);
+function drawTuner(x, y, obj) {
+  push();
+  translate(x, y);
 
+  let tunerWidth = 200;
+  let tunerHeight = 120;
+
+  // Background rectangle
+  fill(20);
+  stroke(0);
+  strokeWeight(4);
+  rectMode(CENTER);
+  rect(0, 0, tunerWidth, tunerHeight, 12);
+
+  // **Time Calculations**
+  let totalTime = 60 * 1000; // 1 minute in milliseconds
+  let currentMillis = obj.seconds * 1000 + obj.millis;
+  let remainingTime = totalTime - currentMillis;
+  let progress = currentMillis / totalTime; // Progress from 0 to 1
+
+  // **Dynamic Deviation Update**
+  let initialSpread = 5; // Max deviation at start of the minute
+  let shrinkFactor = 3.5; // Shrinks faster at start, slower later
+  let maxDeviation = initialSpread * pow(1 - progress, shrinkFactor);
+
+  if (millis() - lastUpdateTime > 1000) {
+    targetDeviation = random(-maxDeviation, maxDeviation);
+
+    let isPreFinalPhase = remainingTime > 5000;
+    
+    // **Before Last 5s: Ensure Center Isn't Alone**
+    if (isPreFinalPhase && abs(targetDeviation) < 0.1) {
+      let choices = [-0.3, -0.2, -0.1, 0.1, 0.2, 0.3]; // Adds extra segment options
+      targetDeviation = random(choices);
+    }
+
+    lastUpdateTime = millis();
+  }
+
+  // **Smoothly interpolate toward targetDeviation**
+  currentDeviation = lerp(currentDeviation, targetDeviation, 0.1);
+
+  // **Final 5 Seconds: Allow Center Alone**
+  let inTune = abs(currentDeviation) <= 0.1 && remainingTime <= 5000;
+
+  // Guide bars
+  let guideHeight = 30;
+  let guideWidth = tunerWidth * 0.8;
+  let centerY = -tunerHeight / 4;
+
+  stroke(80);
+  strokeWeight(2);
+  line(-guideWidth / 2, centerY, 0, centerY + guideHeight);
+  line(guideWidth / 2, centerY, 0, centerY + guideHeight);
+
+  let barCount = 12;
+  let barSpacing = guideWidth / 2 / barCount;
+
+  for (let i = 0; i <= barCount; i++) {
+    let barHeight = map(i, 0, barCount, guideHeight, 5);
+    let barDeviation = i / barCount;
+    let active = abs(currentDeviation) >= barDeviation - 0.01;
+
+    if (active) {
+      if (inTune && i === 0) {
+        fill(173, 216, 230); //Light Blue during last 5 seconds
+      } else {
+        fill(0, 0, 255, 200 - i * 10); // Blue otherwise
+      }
+    } else {
+      fill(50);
+    }
+
+    noStroke();
+    rect(-barSpacing * i, centerY + barHeight / 2, barSpacing * 0.8, barHeight, 2);
+    rect(barSpacing * i, centerY + barHeight / 2, barSpacing * 0.8, barHeight, 2);
+  }
+
+  // **Minute Display**
+  let currentMinute = obj.minutes; // Use provided clock minute
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  text(currentMinute, 0, tunerHeight / 4);
+ 
+  pop();
 }
