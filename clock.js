@@ -24,9 +24,14 @@ function draw_clock(obj) {
   drawWindow()
   drawWindowsill()
 
-  drawMetronome(width/3,height/4*3, obj)
-  drawTuner(width /3 *2, height /4*3 , obj)
+  drawMetronome(width / 6,height/4*3, obj)
+  drawTuner(width / 3, height /4*3 , obj)
+  drawAmp(width * 0.75, height * 0.7);
 }
+
+let lastUpdateTime = 0;
+let targetDeviation = 0;
+let currentDeviation = 0;
 
 function setColours(obj) {
   let hour = obj.hours;
@@ -149,10 +154,6 @@ function drawMetronome(x, y, obj) {
 
   pop();
 }
-
-let lastUpdateTime = 0;
-let targetDeviation = 0;
-let currentDeviation = 0;
 
 function drawTuner(x, y, obj) {
   push();
@@ -325,4 +326,72 @@ function drawGround(obj, frameX, frameY, frameWidth, frameHeight) {
   noStroke();
   let groundY = frameY + frameHeight / 4;
   ellipse(frameX, groundY / 0.85, frameWidth * 1.2, frameHeight * 0.3);
+}
+
+function drawAmp(x, y) {
+  push();
+  translate(x, y);
+
+  //Colors
+  let ampBodyColor = color(20, 20, 20);  // Black amp body
+  let grillColor = color(40, 40, 40);    // Dark grill mesh
+  let panelGold = color(218, 165, 32);   // Gold control panel
+  let knobColor = color(220);            // White/Silver knobs
+  let speakerDark = color(30, 30, 30);   // Speaker inner shadow
+  let speakerLight = color(80, 80, 80);  // Speaker outer rim
+
+  //Amp Body
+  fill(ampBodyColor);
+  stroke(0);
+  strokeWeight(6);
+  rectMode(CENTER);
+  rect(0, 0, 220, 260, 10);
+
+  noFill();
+  stroke(0);
+  strokeWeight(5);
+  rect(0, 0, 220, 260, 10);
+
+  //Control Panel
+  fill(panelGold);
+  stroke(0);
+  strokeWeight(3);
+  rect(0, -90, 190, 45, 5);
+
+  //Knobs
+  let knobY = -90;
+  let knobSpacing = 35;
+  for (let i = -2; i <= 2; i++) {
+    fill(knobColor);
+    stroke(0);
+    ellipse(i * knobSpacing, knobY, 14, 14); // 5 Knobs
+  }
+
+  // 🎤 **Speaker Grill Area**
+  fill(grillColor);
+  stroke(10);
+  strokeWeight(2);
+  rect(0, 50, 180, 140, 5); // Grill frame
+
+  //Speaker
+  fill(speakerLight);
+  stroke(0);
+  strokeWeight(2);
+  ellipse(0, 50, 120, 120); // Outer Speaker Rim
+
+  fill(speakerDark);
+  ellipse(0, 50, 100, 100); // Inner Speaker Cone
+
+  fill(0);
+  ellipse(0, 50, 40, 40); // Speaker Center Cap
+
+  //Marshall-Style Logo
+  fill(255);
+  textSize(24);
+  textFont("Comic Sans");
+  textStyle(BOLD);
+  textAlign(CENTER, CENTER);
+  text("Marshall", 0, -40);
+
+  pop();
 }
