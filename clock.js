@@ -20,13 +20,15 @@ function draw_clock(obj) {
   // Sky Color based on hour
   let skyColor = setColours(obj);
   background(skyColor);
+  
 
   drawWindow()
   drawWindowsill()
 
-  drawMetronome(width / 6,height/4*3, obj)
-  drawTuner(width / 3, height /4*3 , obj)
-  drawAmp(width * 0.75, height * 0.7);
+  drawMetronome(width / 2.5,height/4*3, obj)
+  drawTuner(width / 1.65, height /4*3 , obj)
+  drawAmp(width * 0.84, height * 0.7);
+  drawAmp(width / 6, height * 0.7);
 }
 
 let lastUpdateTime = 0;
@@ -39,10 +41,10 @@ function setColours(obj) {
   let second = obj.seconds;
   let millis = obj.millis;
 
-  // Convert full time into a smooth float (0 to 23.999...)
+  //Convert full time into a smooth float (0 to 23.999...)
   let time = hour + minute / 60 + second / 3600 + millis / 3600000;
 
-  // Define smooth sky colors at specific times
+  //Define smooth sky colors at specific times
   let night = color(10, 10, 40);       // Deep Dark Blue (Midnight)
   let dawn = color(88, 52, 133);       // Purple (Dawn)
   let sunrise = color(232, 131, 72);   // Warm Orange (Sunrise)
@@ -53,10 +55,10 @@ function setColours(obj) {
   let currentColor;
 
   if (time < 2) {
-    currentColor = night; // Midnight to early morning
+    currentColor = night; //Midnight to early morning
   } 
   else if (time < 4) {
-    let t = (time - 4) / 2; // Smooth transition from 4:00 → 6:00
+    let t = (time - 4) / 2; //Smooth transition from 2:00 → 4:00
     currentColor = lerpColor(night, dawn, t);
   } 
   else if (time < 6) {
@@ -252,6 +254,8 @@ function drawWindow() {
 
   drawGround(obj, frameX, frameY, frameWidth, frameHeight);
 
+  drawStars(obj);
+
   //Patches (This is scuffed. Pls fix)
   fill(245, 222, 179);
   noStroke();
@@ -328,19 +332,74 @@ function drawGround(obj, frameX, frameY, frameWidth, frameHeight) {
   ellipse(frameX, groundY / 0.85, frameWidth * 1.2, frameHeight * 0.3);
 }
 
+let stars = []; // Array to store stars
+let starCount = 100; // Number of stars
+
+function drawStars(obj) {
+  // 🪟 **Get Window Boundaries**
+  let frameWidth = width * 0.7;
+  let frameHeight = height * 0.8;
+  let frameX = width / 2;
+  let frameY = height / 2;
+
+  let left = frameX - frameWidth / 2;
+  let right = frameX + frameWidth / 2;
+  let top = frameY - frameHeight / 2;
+  let bottom = frameY; // Keep stars only in the **upper** half of the window
+
+  // 🌟 **1. Generate Stars Inside Window Only Once**
+  if (stars.length === 0) {
+    for (let i = 0; i < starCount; i++) {
+      stars.push({
+        x: random(left + 10, right - 10), // Keep stars inside window horizontally
+        y: random(top + 35, bottom + frameHeight/4), // Keep stars in upper window
+        size: random(1, 3),
+        baseBrightness: random(150, 255) // Max brightness per star
+      });
+    }
+  }
+
+  // 🌙 **2. Determine Star Brightness Based on Time of Day**
+  let hour = obj.hours;
+  let minute = obj.minutes;
+  let time = hour + minute / 60; // Convert time into a smooth float
+
+  let brightness = 0; // Default: No stars in daytime
+
+  if (time < 5 || time > 21) { 
+    brightness = 255; // Full brightness at night (10 PM - 5 AM)
+  } else if (time >= 5 && time < 8) {
+    brightness = map(time, 5, 8, 255, 0, true); // Fade out from 5 AM to 8 AM
+  } else if (time >= 18 && time < 21) {
+    brightness = map(time, 18, 21, 0, 255, true); // Fade in from 6 PM to 9 PM
+  }
+
+  // 🌟 **3. Draw Stars Within Window Only**
+  noStroke();
+  for (let star of stars) {
+    let starAlpha = min(star.baseBrightness, brightness); // Adjust brightness
+    if (starAlpha > 0) { // Only draw if visible
+      fill(255, 255, 255, starAlpha);
+      ellipse(star.x, star.y, star.size);
+    }
+  }
+}
+
 function drawAmp(x, y) {
   push();
   translate(x, y);
 
-  //Colors
+  // Colors
   let ampBodyColor = color(20, 20, 20);  // Black amp body
   let grillColor = color(40, 40, 40);    // Dark grill mesh
   let panelGold = color(218, 165, 32);   // Gold control panel
   let knobColor = color(220);            // White/Silver knobs
   let speakerDark = color(30, 30, 30);   // Speaker inner shadow
   let speakerLight = color(80, 80, 80);  // Speaker outer rim
+  let inputJackColor = color(10);        // Black input jack
+  let switchColor = color(255, 0, 0);    // Red on/off switch
 
-  //Amp Body
+  // Amp Body
   fill(ampBodyColor);
   stroke(0);
   strokeWeight(6);
@@ -352,28 +411,40 @@ function drawAmp(x, y) {
   strokeWeight(5);
   rect(0, 0, 220, 260, 10);
 
-  //Control Panel
+  // Control Panel
   fill(panelGold);
   stroke(0);
   strokeWeight(3);
   rect(0, -90, 190, 45, 5);
 
-  //Knobs
+  // Knobs
   let knobY = -90;
-  let knobSpacing = 35;
-  for (let i = -2; i <= 2; i++) {
+  let knobSpacing = 30; // Reduced spacing to make room for switch
+  for (let i = -1; i <= 2; i++) {  // Shifted left
     fill(knobColor);
     stroke(0);
-    ellipse(i * knobSpacing, knobY, 14, 14); // 5 Knobs
+    ellipse(i * knobSpacing - 10, knobY, 14, 14); // 4 Knobs instead of 5
   }
 
-  // 🎤 **Speaker Grill Area**
+  // Input Jack (Leftmost element)
+  fill(inputJackColor);
+  stroke(220);
+  strokeWeight(2);
+  ellipse(-80, knobY, 12, 12); // Input jack circle
+
+  // On/Off Switch (Rightmost element)
+  fill(switchColor);
+  stroke(0);
+  strokeWeight(2);
+  rect(70, knobY, 10, 18, 3); // Small vertical rocker switch
+
+  // Speaker Grill Area
   fill(grillColor);
   stroke(10);
   strokeWeight(2);
   rect(0, 50, 180, 140, 5); // Grill frame
 
-  //Speaker
+  // Speaker
   fill(speakerLight);
   stroke(0);
   strokeWeight(2);
@@ -385,8 +456,10 @@ function drawAmp(x, y) {
   fill(0);
   ellipse(0, 50, 40, 40); // Speaker Center Cap
 
-  //Marshall-Style Logo
+  //Logo
   fill(255);
+  stroke(0);
+  strokeWeight(3);
   textSize(24);
   textFont("Comic Sans");
   textStyle(BOLD);
