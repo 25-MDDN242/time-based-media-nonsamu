@@ -17,6 +17,7 @@ function draw_clock(obj) {
   textAlign(CENTER, CENTER);
   text("YOUR MAIN CLOCK CODE GOES HERE", width / 2, 200);
   
+  let alarm = obj.seconds_until_alarm;
   // Sky Color based on hour
   let skyColor = setColours(obj);
   background(skyColor);
@@ -332,11 +333,10 @@ function drawGround(obj, frameX, frameY, frameWidth, frameHeight) {
   ellipse(frameX, groundY / 0.85, frameWidth * 1.2, frameHeight * 0.3);
 }
 
-let stars = []; // Array to store stars
-let starCount = 100; // Number of stars
+let stars = [];
+let starCount = 100;
 
 function drawStars(obj) {
-  // 🪟 **Get Window Boundaries**
   let frameWidth = width * 0.7;
   let frameHeight = height * 0.8;
   let frameX = width / 2;
@@ -345,40 +345,40 @@ function drawStars(obj) {
   let left = frameX - frameWidth / 2;
   let right = frameX + frameWidth / 2;
   let top = frameY - frameHeight / 2;
-  let bottom = frameY; // Keep stars only in the **upper** half of the window
+  let bottom = frameY;
 
-  // 🌟 **1. Generate Stars Inside Window Only Once**
+  //Generate Stars Inside Window Only Once
   if (stars.length === 0) {
     for (let i = 0; i < starCount; i++) {
       stars.push({
-        x: random(left + 10, right - 10), // Keep stars inside window horizontally
-        y: random(top + 35, bottom + frameHeight/4), // Keep stars in upper window
+        x: random(left + 10, right - 10),
+        y: random(top + 35, bottom + frameHeight/4),
         size: random(1, 3),
-        baseBrightness: random(150, 255) // Max brightness per star
+        baseBrightness: random(150, 255)
       });
     }
   }
 
-  // 🌙 **2. Determine Star Brightness Based on Time of Day**
+  //Star Brightness Based on Time of Day
   let hour = obj.hours;
   let minute = obj.minutes;
-  let time = hour + minute / 60; // Convert time into a smooth float
+  let time = hour + minute / 60;
 
-  let brightness = 0; // Default: No stars in daytime
+  let brightness = 0; //Default: No stars in daytime
 
   if (time < 5 || time > 21) { 
-    brightness = 255; // Full brightness at night (10 PM - 5 AM)
+    brightness = 255; //Full brightness at night (10 PM - 5 AM)
   } else if (time >= 5 && time < 8) {
-    brightness = map(time, 5, 8, 255, 0, true); // Fade out from 5 AM to 8 AM
+    brightness = map(time, 5, 8, 255, 0, true); //Fade out from 5 AM to 8 AM
   } else if (time >= 18 && time < 21) {
-    brightness = map(time, 18, 21, 0, 255, true); // Fade in from 6 PM to 9 PM
+    brightness = map(time, 18, 21, 0, 255, true); //Fade in from 6 PM to 9 PM
   }
 
-  // 🌟 **3. Draw Stars Within Window Only**
+  //Draw Stars Within Window Only
   noStroke();
   for (let star of stars) {
-    let starAlpha = min(star.baseBrightness, brightness); // Adjust brightness
-    if (starAlpha > 0) { // Only draw if visible
+    let starAlpha = min(star.baseBrightness, brightness); 
+    if (starAlpha > 0) { 
       fill(255, 255, 255, starAlpha);
       ellipse(star.x, star.y, star.size);
     }
