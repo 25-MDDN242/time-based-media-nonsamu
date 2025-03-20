@@ -1,6 +1,14 @@
 /*
  * use p5.js to draw a clock on a 960x500 canvas
  */
+
+let song; 
+let alarmIsPlaying = false;
+
+/*function preload(){
+  song = loadSound('sisterToSleep.mp3');
+}*/
+
 function draw_clock(obj) {
   // draw your own clock here based on the values of obj:
   //    obj.hours goes from 0-23
@@ -22,6 +30,15 @@ function draw_clock(obj) {
   let skyColor = setColours(obj);
   background(skyColor);
   
+  //let song = loadSound('assets/Sister To Sleep Full Band.wav')
+  //song.play();
+  /*if (alarm === 0 && !alarmIsPlaying){
+    song.play();
+    alarmIsPlaying = true;
+  } else if (alarm !== 0 && alarmIsPlaying){
+    song.stop();
+    alarmIsPlaying = false;
+  }*/
 
   drawWindow()
   drawWindowsill()
@@ -46,12 +63,12 @@ function setColours(obj) {
   let time = hour + minute / 60 + second / 3600 + millis / 3600000;
 
   //Define smooth sky colors at specific times
-  let night = color(10, 10, 40);       // Deep Dark Blue (Midnight)
-  let dawn = color(88, 52, 133);       // Purple (Dawn)
-  let sunrise = color(232, 131, 72);   // Warm Orange (Sunrise)
-  let midday = color(45, 104, 196);    // Bright Blue (Daytime)
-  let sunset = color(250, 128, 114);   // Reddish-Orange (Sunset)
-  let dusk = color(45, 45, 85);        // Deep Blue-Purple (Dusk)
+  let night = color(10, 10, 40);       //Deep Dark Blue (Midnight)
+  let dawn = color(88, 52, 133);       //Purple (Dawn)
+  let sunrise = color(232, 131, 72);   //Warm Orange (Sunrise)
+  let midday = color(45, 104, 196);    //Bright Blue (Daytime)
+  let sunset = color(250, 128, 114);   //Reddish-Orange (Sunset)
+  let dusk = color(45, 45, 85);        //Deep Blue-Purple (Dusk)
 
   let currentColor;
 
@@ -116,10 +133,16 @@ function drawMetronome(x, y, obj) {
   translate(0, 50); //Pivot point
 
   //Swing motion
+  let alarm = obj.seconds_until_alarm;
   let millisProgress = obj.millis / 1000;
+  if (alarm === 0) {
+    let angle = 0;
+    rotate(angle);
+  } else{
   let swingRange = 40;
   let angle = radians(lerp(obj.seconds % 2 ? swingRange : -swingRange, obj.seconds % 2 ? -swingRange : swingRange, millisProgress));
   rotate(angle);
+  }
 
   //Pendulum Rod
   stroke(150); strokeWeight(6);
@@ -205,6 +228,7 @@ function drawTuner(x, y, obj) {
   //Bars
   let guideHeight = 30, guideWidth = 80, centerY = -75;
   let barCount = 7, barSpacing = guideWidth / (2 * barCount);
+  let alarm = obj.seconds_until_alarm
 
   stroke(20);
   strokeWeight(2);
@@ -215,11 +239,18 @@ function drawTuner(x, y, obj) {
     let barHeight = map(i, 4, barCount, guideHeight * 1.5, 40);
     let active = abs(currentDeviation) >= i / barCount - 0.01;
 
-    fill(active ? (inTune && i === 0 ? color(173, 216, 230) : color(0, 0, 255, 200 - i * 10)) : 50);
-    noStroke();
-    rect(-barSpacing * i, centerY + barHeight / 2, barSpacing * 0.8, barHeight, 2);
-    rect(barSpacing * i, centerY + barHeight / 2, barSpacing * 0.8, barHeight, 2);
+    let barColor;
+  if (alarm === 0) {
+    barColor = color(255, 0, 0, 200 - i * 10); //Red bars when alarm is active
+  } else {
+    barColor = active ? (inTune && i === 0 ? color(173, 216, 230) : color(0, 0, 255, 200 - i * 10)) : color(50);
   }
+
+  fill(barColor);
+  noStroke();
+  rect(-barSpacing * i, centerY + barHeight / 2, barSpacing * 0.8, barHeight, 2);
+  rect(barSpacing * i, centerY + barHeight / 2, barSpacing * 0.8, barHeight, 2);
+}
 
   //Minute Display
   fill(255);
@@ -278,8 +309,8 @@ function drawWindow() {
   //Window Panes
   stroke(100,50,20);
   strokeWeight(15);
-  line(frameX * 0.75, frameY/1.25, frameX * 1.25, frameY/1.25); // Horizontal divider
-  line(frameX * 0.75, frameY - frameHeight / 2+20, frameX * 0.75, frameY + frameHeight / 2-20); // Vertical divider
+  line(frameX * 0.75, frameY/1.25, frameX * 1.25, frameY/1.25); //Horizontal divider
+  line(frameX * 0.75, frameY - frameHeight / 2+20, frameX * 0.75, frameY + frameHeight / 2-20); //Vertical dividers
   line(frameX * 1.25, frameY - frameHeight / 2+20, frameX * 1.25, frameY + frameHeight / 2-20);
 
   stroke(80, 50, 20);
@@ -292,13 +323,13 @@ function drawWindowsill() {
   let sillHeight = 30;
   let sillY = height - sillHeight;
 
-  fill(120, 70, 30); // Wood color
+  fill(120, 70, 30); //Wood color
   noStroke();
   rectMode(CORNER);
-  rect(0, sillY, width, sillHeight); // Horizontal shelf
+  rect(0, sillY, width, sillHeight); //Horizontal shelf
 
-  // Add shadow for realism
-  fill(80, 50, 20, 150); // Darker brown with transparency
+  //Add shadow for realism
+  fill(80, 50, 20, 150); //Darker brown with transparency
   rect(0, sillY + sillHeight - 5, width, 10);
 }
 
@@ -389,17 +420,19 @@ function drawAmp(x, y) {
   push();
   translate(x, y);
 
-  // Colors
-  let ampBodyColor = color(20, 20, 20);  // Black amp body
-  let grillColor = color(40, 40, 40);    // Dark grill mesh
-  let panelGold = color(218, 165, 32);   // Gold control panel
-  let knobColor = color(220);            // White/Silver knobs
-  let speakerDark = color(30, 30, 30);   // Speaker inner shadow
-  let speakerLight = color(80, 80, 80);  // Speaker outer rim
-  let inputJackColor = color(10);        // Black input jack
-  let switchColor = color(255, 0, 0);    // Red on/off switch
+  //Colors
+  let ampBodyColor = color(20, 20, 20);  //Black amp body
+  let grillColor = color(40, 40, 40);    //Dark grill mesh
+  let panelGold = color(218, 165, 32);   //Gold control panel
+  let knobColor = color(220);            //White/Silver knobs
+  let speakerDark = color(30, 30, 30);   //Speaker inner shadow
+  let speakerLight = color(80, 80, 80);  //Speaker outer rim
+  let inputJackColor = color(10);        //Black input jack
+  let switchColor = color(255, 0, 0);    //Red on/off switch
 
-  // Amp Body
+  let alarm = obj.seconds_until_alarm;
+
+  //Amp Body
   fill(ampBodyColor);
   stroke(0);
   strokeWeight(6);
@@ -411,50 +444,63 @@ function drawAmp(x, y) {
   strokeWeight(5);
   rect(0, 0, 220, 260, 10);
 
-  // Control Panel
+  //Control Panel
   fill(panelGold);
   stroke(0);
   strokeWeight(3);
   rect(0, -90, 190, 45, 5);
 
-  // Knobs
+  //Knobs
   let knobY = -90;
-  let knobSpacing = 30; // Reduced spacing to make room for switch
-  for (let i = -1; i <= 2; i++) {  // Shifted left
+  let knobSpacing = 30; //Reduced spacing to make room for switch
+  for (let i = -1; i <= 2; i++) {  //Shifted left
     fill(knobColor);
     stroke(0);
-    ellipse(i * knobSpacing - 10, knobY, 14, 14); // 4 Knobs instead of 5
+    ellipse(i * knobSpacing - 10, knobY, 14, 14); //4 Knobs instead of 5
   }
 
-  // Input Jack (Leftmost element)
+  //Input Jack (Leftmost element)
   fill(inputJackColor);
   stroke(220);
   strokeWeight(2);
-  ellipse(-80, knobY, 12, 12); // Input jack circle
+  ellipse(-80, knobY, 12, 12); //Input jack circle
 
-  // On/Off Switch (Rightmost element)
+  //On/Off Switch (Rightmost element)
   fill(switchColor);
   stroke(0);
   strokeWeight(2);
-  rect(70, knobY, 10, 18, 3); // Small vertical rocker switch
+  rect(70, knobY, 10, 18, 3); //Small vertical rocker switch
 
-  // Speaker Grill Area
+  let pulseSize = 0;
+
+  if (alarm === 0) {
+    let bpm = 217;
+    let hz = bpm / 60; 
+    let pulseSpeed = TWO_PI * hz; 
+  
+    let t = millis() / 1000; 
+    let sineWave = sin(t * pulseSpeed); 
+  
+    pulseSize = sineWave * 10; 
+  }
+
+  //Speaker Grill Area
   fill(grillColor);
   stroke(10);
   strokeWeight(2);
-  rect(0, 50, 180, 140, 5); // Grill frame
+  rect(0, 50, 180, 140, 5);
 
-  // Speaker
-  fill(speakerLight);
-  stroke(0);
-  strokeWeight(2);
-  ellipse(0, 50, 120, 120); // Outer Speaker Rim
+fill(speakerLight);
+stroke(0);
+strokeWeight(2);
+ellipse(0, 50, 120 + pulseSize, 120 + pulseSize); //Speaker outer rim
 
-  fill(speakerDark);
-  ellipse(0, 50, 100, 100); // Inner Speaker Cone
+fill(speakerDark);
+ellipse(0, 50, 100 + pulseSize * 0.8, 100 + pulseSize * 0.8); //Speaker Inner Cone
 
-  fill(0);
-  ellipse(0, 50, 40, 40); // Speaker Center Cap
+
+fill(0);
+ellipse(0, 50, 40 + pulseSize * 0.5, 40 + pulseSize * 0.5); //Speaker venter cap
 
   //Logo
   fill(255);
